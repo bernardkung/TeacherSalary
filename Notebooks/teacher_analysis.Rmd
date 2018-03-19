@@ -1,0 +1,97 @@
+---
+title: "Public Education Salaries in Pennsylvania (2015-2016)"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+## Prep: Loading Packages and Data
+
+```{r}
+library('ggplot2')
+library('readr')
+library('tidyr')
+library('dplyr')
+```
+
+I have the dataset for this analysis in my GitHub; reading directly from raw helps portability.
+```{r}
+data_url = 'https://raw.githubusercontent.com/bernardkung/TeacherSalary/master/2015_2016_PA_Salaries.csv'
+data = read_csv(data_url)
+```
+
+
+```{r}
+head(data)
+dim(data)
+summary(data)
+```
+
+## Prep: Cleaning Dataframe
+
+From the initial look at the data, there's two things that stand out to me:
+
+* First, I want to strip the whitespaces out of the column names.
+
+* Second, the **AnnualSalary** column is character strings, and I want to coerce to numeric.
+
+The first part is easy enough with some _gsub_ and regex.
+```{r}
+colnames(data) <- gsub(' ', '', colnames(data)) 
+```
+
+Then to convert **AnnualSalary** to numeric. Since the character strings include the '$' sign, I need to strip it out. I'll use _gsub()_ again embedded in my coersion to numeric. 
+```{r}
+# coerce AnnualSalary to numeric
+AnnualSalary <- as.numeric(gsub('[$,]', '', data$AnnualSalary))
+summary(AnnualSalary)
+data$AnnualSalary <- AnnualSalary
+```
+Great. What I'm looking for at this point is to make sure things are in the right datatype and format and there's nothing egregiously wrong. Next I'll get into exploring and familiarizing myself with the data. 
+
+## Exploratory Data Analysis: Getting to Know the Data
+
+I downloaded the data with only a cursory lookover what the contents are, so the first thing I want to do is to familiarize myself with the data. With 146,744 rows of data though, I'll want to find ways to summarize the columns. 
+
+I've already run a _summary()_ call, which is great for numeric columns. The **YearsInLEA** (Years in Local Education Agency/School District) column and **YearsInEd** (Years in Education) column don't seem to have any impossible outliers, like negative years or years over 100. 
+
+For the character string columns I'm going to have to find alternative methods of summarizing. 
+
+* First use an _apply()_ function to apply _unique()_ to each column, and store in the **data_unique** list. 
+* Then, use _lapply()_ to apply the _length()_ function on **data_unique**.
+
+```{r}
+data_unique <- apply(data, 2, unique)
+lapply(data_unique, length)
+```
+What this gives me is a list of how many unique values there are in each column. I can now see that there are 769 school districts, 4 job categories, 15 positions, etc. There are a few interesting things here I'll go into later, but for now staying on focus I want to try to clear up the relationships between **JobCategory**, **Position**, and **Assignment**. 
+
+```{r}
+data[,c('JobCategory', 'Position')] %>% group_by(JobCategory, Position) %>% tally()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

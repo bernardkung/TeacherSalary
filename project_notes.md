@@ -33,4 +33,24 @@ name_table
 Starting from the name repeated 8 times, it actually looks like it's 8 different people who have the same names. So happily I checked because I was completely wrong in a way that seems really obvious in retrospect. At this point, the data looks like it might be really clean.
 
 
-Filtering for all the unique combinations of _JobCategory_ and _Position_, luckily it appears that _Position_ is indeed a subcategory of _JobCategory_. Overall, this data is looking exactly the way it should coming out of a well-maintained relational database. 
+Filtering for all the unique combinations of _JobCategory_ and _Position_, luckily it appears that _Position_ is indeed a subcategory of _JobCategory_. Overall, this data is looking exactly the way it should coming out of a well-maintained relational database. Noodle around a little bit, but it's time to start looking at the salary.
+
+
+Two initial plots; first is a histogram of _AnnualSalary_, the second is the same histogram grouped by _JobCategory_. Probably the only thing worth noting is that administrators get paid more than teachers et al, and there's a long tail to the right of mostly administrators. But there's also too much disparity considering this is a state-wide dataset. Probably the ticket is breaking it down by school district, which I wanted to do anyways.
+
+So I'm going to try to get average _AnnualSalary_ by _JobCategory_ for each _SchoolDistrict_.
+Initially, I put together an ad hoc _summary()_ call using _dplyr_; but really I only want averages at the moment.
+
+First I'm pulling out the columns I want. Then I group by _SchoolDistrict_ and _JobCategory_ and average _AnnualSalary_. But I want to be able to compare average _AnnualSalary_ between _JobCategory_ for each _SchoolDistrict_. This took a bit of thinking since I don't do a ton of data restructuring (yet). So the _spread()_ command flattens the dataframe so that _SchoolDistrict_ is the Primary Key (PK), and _JobCategory_ are the columns, with each entry being the average _AnnualSalary_. Also, rename the columns just to make everything easier for _dplyr_ piping.
+
+So before I go any further, the most interesting thing is that despite my earlier check, it appears there are NAs that I missed! So what happened? These are average _AnnualSalary_; so while there weren't any missing values in the data, there are some _SchoolDistrict_ missing some _JobCategory_. So while it's good that all _SchoolDistrict_ have teachers, it's interesting that some _SchoolDistrict_ have no ""Administrative / Supervisory" on the payroll. Of course there are also (many more) missing values for "Coordinate Services" aka Coordinators, and "Others".
+
+So to take a closer look, I can pull just the 12 districts without administrator salaries. Since I know nothing about PA school districts, time to do some Google research.
+
+For example: \
+* "Ambridge Area SD" is a ["midsized, urban public school district in Beaver County, Pennsylvania"](https://en.wikipedia.org/wiki/Ambridge_Area_School_District). Wikipedia link states 2,822 pupils in the district. Also interesting, a superintendent with salary is listed for the district for the time period of the data.
+* "North Central Secure Trmnt Unt" is the North Central Secure Treatment Unit (NCSTU). It's part of the [PA Juvenile Justice System.](http://www.dhs.pa.gov/citizens/juvenilejstcsrvcs/centercamp/)
+* "Youth Forestry Camp #3" similarly is part of the [PA Juvenile Justice System.](http://www.dhs.pa.gov/citizens/juvenilejstcsrvcs/centercamp/) Altogether, it looks like there's about 300 beds across all facilities.
+* "Wonderland CS" is a charter school in State College, PA. By the looks of it, it's fairly small, easily less than 100 students.
+
+So very interesting. By pulling directly from our original data, it looks like the juvenile facilities maintain just teachers and guidance counselors and may be administrated from outside the education system. Here's the problem: Youth Forestry Camp #2 does have an administrator. Similarly, Wonderland CS has teachers on payroll, but no administrators. There may be something worth digging into here, but frankly I think it's a problem to be shelved for now. 
